@@ -11,6 +11,11 @@ public class KitchenInventoryUI : MonoBehaviour
         UpdateItems();
     }
 
+    void OnEnable()
+    {
+        UpdateItems();
+    }
+
     public void UpdateItems()
     {
         Debug.Log("Loading Items");
