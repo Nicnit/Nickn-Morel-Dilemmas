@@ -18,5 +18,5 @@ public class SceneSwap : MonoBehaviour
     public void SwapScene()
     {
         SceneManager.LoadScene(nextScene);
-    }
+    }   
 }

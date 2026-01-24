@@ -21,6 +21,7 @@ public class ParallaxLayer : MonoBehaviour
 
     void LateUpdate()
     {
+        if(cam==null) cam = Camera.main.transform;
         float camX = cam.position.x;
 
         transform.position = new Vector3(camX * parallaxMultiplier, transform.position.y, transform.position.z);

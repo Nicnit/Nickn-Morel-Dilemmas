@@ -12,6 +12,11 @@ public class CameraTransition : MonoBehaviour
     public float timer;
     public AnimationCurve curve;
     public float offsetMult = .5f;
+
+    void Awake()
+    {
+        FixedUpdate();
+    }
     void FixedUpdate()
     {
         Transform previousSelected = selectedRoom;

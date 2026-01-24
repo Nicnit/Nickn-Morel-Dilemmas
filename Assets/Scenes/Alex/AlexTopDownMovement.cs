@@ -43,7 +43,7 @@ public class AlexTopDownMovement : MonoBehaviour
                 currDirection = dir;
             }
 
-            spriteRenderer.flipX = dir.x > 0 ? false : true;
+            if(dir.x!=0) spriteRenderer.flipX = dir.x > 0 ? false : true;
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
@@ -98,6 +98,11 @@ public class AlexTopDownMovement : MonoBehaviour
     public void SetCurrDirection(Vector3 newDir)
     {
         currDirection = newDir;
+    }
+
+    public void SetDirection(Vector3 newDir)
+    {
+        dir = newDir;
     }
     public Vector3 GetCurrDirection()
     {

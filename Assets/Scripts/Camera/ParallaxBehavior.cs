@@ -46,6 +46,7 @@ public class ParallaxBehavior : MonoBehaviour
 
     void LateUpdate()
     {
+        if(cam==null) cam = Camera.main.transform;
         float deltaX = cam.position.x - camStartPos.x;
 
         for (int i = 0; i < backgrounds.Length; i++)
