@@ -1,190 +1,99 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
+using EzySlice;
+using System.Collections;
 
-public class Slicer : MonoBehaviour
+public class EzyMeshSlicer : MonoBehaviour
 {
-    Vector2 point1, point2;
+    Vector3 p1World, p2World;
+    public GameObject sliceParticle;
+    public float sliceTime = 1;
+    public AnimationCurve sliceCurve;
+    public float sliceMoveDistance = 1;
+    public float sliceMoveTime = 1;
+    public AnimationCurve sliceMoveCurve;
+    private float sliceTimer;
+    private GameObject sliceParticleInstance;  
+
     public void SetPoint1()
     {
-        print("set 1");
-        point1 = Input.mousePosition;
+        if(sliceTimer > 0) return;
+
+        p1World = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5));
     }
+
     public void SetPoint2()
     {
-        print("set 2");
-        point2 = Input.mousePosition;
-        List<Transform> childList = new List<Transform>();
-        foreach(Transform child in transform)
+        if(sliceTimer > 0) return;
+
+        p2World = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5));
+
+        sliceTimer = 1;
+        sliceParticleInstance = Instantiate(sliceParticle, p1World, Quaternion.identity);
+        var main = sliceParticleInstance.GetComponent<ParticleSystem>().main;
+        main.duration = sliceTime;
+        sliceParticleInstance.GetComponent<ParticleSystem>().Play();
+    }
+
+    void FixedUpdate()
+    {
+        if(sliceTimer > 0)
         {
-            childList.Add(child);
+            sliceTimer -= Time.fixedDeltaTime/sliceTime;
+            sliceParticleInstance.transform.position = Vector3.Lerp(p1World, p2World, sliceCurve.Evaluate(1 - sliceTimer));
         }
-        foreach(Transform child in childList)
+        else
         {
-            RectTransform rt = child as RectTransform;
-
-            Vector2 localP1, localP2;
-
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                rt,
-                point1,
-                null, // camera = null for Screen Space Overlay
-                out localP1
-            );
-
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                rt,
-                point2,
-                null,
-                out localP2
-            );
-
-            var mf = child.GetComponent<MeshFilter>();
-            Mesh mesh1, mesh2;
-
-            Vector3 s = rt.localScale;
-
-Vector2 meshP1 = new Vector2(
-    localP1.x / s.x,
-    localP1.y / s.y
-);
-
-Vector2 meshP2 = new Vector2(
-    localP2.x / s.x,
-    localP2.y / s.y
-);
-
-Cut(GetOutline(mf.mesh), meshP1, meshP2, out mesh1, out mesh2);
-
-
-            if (mesh1.vertexCount >= 3 && mesh2.vertexCount >= 3)
+            if(sliceParticleInstance != null)
             {
-                MeshFilter child1 = mf;
-                MeshFilter child2 = Instantiate(child.gameObject, transform).GetComponent<MeshFilter>();
-
-                child1.mesh = mesh1;
-                child2.mesh = mesh2;
+                SliceAllChildren();
             }
         }
     }
 
-    public static List<Vector2> GetOutline(Mesh m)
-{
-    var v = m.vertices;
-    var t = m.triangles;
-
-    var edges = new Dictionary<(int,int), int>();
-
-    void Add(int a, int b)
+    void SliceAllChildren()
     {
-        if (a > b) (a, b) = (b, a);
-        edges[(a,b)] = edges.TryGetValue((a,b), out int c) ? c + 1 : 1;
-    }
-
-    for (int i = 0; i < t.Length; i += 3)
-    {
-        Add(t[i], t[i+1]);
-        Add(t[i+1], t[i+2]);
-        Add(t[i+2], t[i]);
-    }
-
-    // build adjacency
-    var adj = new Dictionary<int, List<int>>();
-    foreach (var e in edges)
-    {
-        if (e.Value != 1) continue;
-
-        int a = e.Key.Item1;
-        int b = e.Key.Item2;
-
-        if (!adj.ContainsKey(a)) adj[a] = new List<int>();
-        if (!adj.ContainsKey(b)) adj[b] = new List<int>();
-
-        adj[a].Add(b);
-        adj[b].Add(a);
-    }
-
-    // walk loop
-    var outline = new List<Vector2>();
-    int start = -1;
-    foreach (var k in adj.Keys) { start = k; break; }
-
-    int prev = -1;
-    int curr = start;
-
-    do
-    {
-        outline.Add(v[curr]);
-
-        var neighbors = adj[curr];
-        int next = neighbors[0] == prev && neighbors.Count > 1
-            ? neighbors[1]
-            : neighbors[0];
-
-        prev = curr;
-        curr = next;
-
-    } while (curr != start && outline.Count < adj.Count + 1);
-
-    return outline;
-}
-
-
-    public static void Cut(
-        List<Vector2> poly,
-        Vector2 p0,
-        Vector2 p1,
-        out Mesh a,
-        out Mesh b)
-    {
-        Vector2 d = (p1 - p0).normalized;
-        List<Vector2> L = new(), R = new();
-
-        for (int i = 0; i < poly.Count; i++)
+        var children = new Transform[transform.childCount];
+        for (int i = 0; i < children.Length; i++) children[i] = transform.GetChild(i);
+        
+        foreach (Transform child in children)
         {
-            Vector2 A = poly[i];
-            Vector2 B = poly[(i + 1) % poly.Count];
+            MeshFilter meshFilter = child.GetComponent<MeshFilter>();
+            MeshRenderer meshRenderer = child.GetComponent<MeshRenderer>();
+            if (!meshFilter || !meshRenderer) continue;
 
-            float da = Side(A), db = Side(B);
+            Vector3 swipeDir = (p2World - p1World).normalized;
+            Vector3 planeNormal = Vector3.Cross(swipeDir, Camera.main.transform.forward).normalized;
 
-            if (da >= 0) L.Add(A); else R.Add(A);
+            Vector3 planePoint = p1World;
 
-            if (da * db < 0)
-            {
-                Vector2 I = Vector2.Lerp(A, B, da / (da - db));
-                L.Add(I); R.Add(I);
-            }
+            SlicedHull hull = child.gameObject.Slice(
+                planePoint,
+                planeNormal
+            );
+
+            if (hull == null) continue;
+
+            GameObject upper = hull.CreateUpperHull(child.gameObject, meshRenderer.sharedMaterial);
+            GameObject lower = hull.CreateLowerHull(child.gameObject, meshRenderer.sharedMaterial);
+
+            upper.transform.SetParent(transform, false);
+            lower.transform.SetParent(transform, false);
+
+            StartCoroutine(MoveSlice(upper.transform, planeNormal, sliceMoveTime, sliceMoveDistance));
+            StartCoroutine(MoveSlice(lower.transform, -planeNormal, sliceMoveTime, sliceMoveDistance));
+
+            Destroy(child.gameObject);
         }
-
-        a = Tri(L);
-        b = Tri(R);
-
-        float Side(Vector2 p) =>
-            (p.x - p0.x) * d.y - (p.y - p0.y) * d.x;
     }
 
-    static Mesh Tri(List<Vector2> p)
+    IEnumerator MoveSlice(Transform sliceTransform, Vector3 point, float duration, float distance)
     {
-        Mesh m = new Mesh();
-        if (p.Count < 3) return m;
-
-        Vector3[] v = new Vector3[p.Count];
-        int[] t = new int[(p.Count - 2) * 3];
-
-        for (int i = 0; i < p.Count; i++)
-            v[i] = p[i];
-
-        for (int i = 0, k = 0; i < p.Count - 2; i++)
+        for(float t=0; t<duration; t+=Time.fixedDeltaTime)
         {
-            t[k++] = 0;
-            t[k++] = i + 1;
-            t[k++] = i + 2;
+            Vector3 originalposition = sliceTransform.position;
+            Vector3 targetPosition = originalposition + point.normalized * distance;
+            sliceTransform.position = Vector3.Lerp(originalposition, targetPosition, sliceMoveCurve.Evaluate(t/duration));
+            yield return new WaitForFixedUpdate();
         }
-
-        m.vertices = v;
-        m.triangles = t;
-        m.RecalculateNormals();
-        m.RecalculateBounds();
-        return m;
     }
 }

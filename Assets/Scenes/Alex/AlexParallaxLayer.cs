@@ -28,13 +28,9 @@ public class AlexParallaxLayer : MonoBehaviour
             cam = main.transform;
         }
 
-        float camX = cam.position.x;
+        float parallaxAmount = cam.position.x * parallaxMultiplier;
 
-        transform.position = new Vector3(
-            camX * parallaxMultiplier,
-            transform.position.y,
-            transform.position.z
-        );
+        float camX = cam.position.x-parallaxAmount;
 
         float totalWidth = tileWidth * tiles.Length/2;
 
@@ -48,7 +44,8 @@ public class AlexParallaxLayer : MonoBehaviour
 
             tiles[i].position =
                 Vector3.right * totalWidth * (dist + count) +
-                new Vector3(0f, tiles[i].position.y, tiles[i].position.z);
+                new Vector3(0f, tiles[i].position.y, tiles[i].position.z)+
+                parallaxAmount*Vector3.right;
         }
     }
 
