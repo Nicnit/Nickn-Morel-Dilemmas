@@ -77,6 +77,7 @@ public class AlexTopDownMovement : MonoBehaviour
         if (canMove)
         {
             rb.MovePosition(transform.position + dir * maxSpeed * Time.fixedDeltaTime);
+            transform.position = new Vector3(transform.position.x, transform.position.y, -2);
         }
     }
 

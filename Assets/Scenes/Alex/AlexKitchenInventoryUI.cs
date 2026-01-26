@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 
 public class AlexKitchenInventoryUI : MonoBehaviour
 {
@@ -44,6 +45,16 @@ public class AlexKitchenInventoryUI : MonoBehaviour
         {
             Instantiate(itemUI, this.gameObject.transform);
         }
+    }
+
+    public void Grow()
+    {
+        transform.DOScale(originalSize * 3f, 0.2f);
+    }
+
+    public void Shrink()
+    {
+        transform.DOScale(originalSize, 0.2f);
     }
 
     public IEnumerator setTransform(Vector2 position, Vector2 size)
