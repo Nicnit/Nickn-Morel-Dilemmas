@@ -21,4 +21,9 @@ public class ItemPickup : MonoBehaviour, IInteractable
             Destroy(this.gameObject);
         }
     }
+
+    void OnEnable()
+    {
+        GetComponent<SpriteRenderer>().sprite = pickupItem.defaultSprite;
+    }
 }

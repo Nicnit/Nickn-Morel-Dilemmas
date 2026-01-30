@@ -18,6 +18,7 @@ public class AlexTopDownMovement : MonoBehaviour
     private bool canMove = true;
 
     public LayerMask layerMask;
+    public Animator animator;
 
     // Start is called before the first frame update
     void Start()
@@ -25,7 +26,7 @@ public class AlexTopDownMovement : MonoBehaviour
         // anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
-        dir = new Vector3(1, 0, 0);
+        dir = new Vector3(0, 0, 0);
     }
 
     // Update is called once per frame
@@ -36,14 +37,29 @@ public class AlexTopDownMovement : MonoBehaviour
             float x = Input.GetAxisRaw("Horizontal");
             float y = Input.GetAxisRaw("Vertical");
 
-
-            dir = Vector3.MoveTowards(dir, new Vector3(x, y).normalized, Time.deltaTime*turnSpeed);
-            if (dir.magnitude > 0)
+            Vector3 rawInput = new Vector3(x, y).normalized;
+            dir = Vector3.MoveTowards(dir, rawInput, Time.deltaTime*turnSpeed);
+            
+            // Use raw input for animator/flip decisions, smoothed dir only for movement
+            if (rawInput.magnitude > 0)
             {
-                currDirection = dir;
+                currDirection = rawInput;
+                animator.SetBool("IsMoving", true);
+                
+                if (x > 0)
+                {
+                    spriteRenderer.flipX = false;
+                }
+                else if (x < 0)
+                {
+                    spriteRenderer.flipX = true;
+                }
             }
-
-            if(dir.x!=0) spriteRenderer.flipX = dir.x > 0 ? false : true;
+            else
+            {
+                animator.SetBool("IsMoving", false);
+            }
+            animator.SetInteger("Vertical", (int) Mathf.Ceil(y));
         }
 
         if (Input.GetKeyDown(KeyCode.Space))

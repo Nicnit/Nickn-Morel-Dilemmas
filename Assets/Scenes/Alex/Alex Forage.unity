@@ -1783,6 +1783,7 @@ GameObject:
   - component: {fileID: 744029370}
   - component: {fileID: 744029369}
   - component: {fileID: 744029375}
+  - component: {fileID: 744029376}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1826,6 +1827,7 @@ MonoBehaviour:
   groundCheckCircle: 0.1
   jumpTime: 0.35
   jumpTimeCounter: 0
+  animator: {fileID: 0}
 --- !u!61 &744029371
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1984,13 +1986,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxSpeed: 10
-  turnSpeed: 5
+  turnSpeed: 7
   isMoving: 0
   spriteRenderer: {fileID: 744029373}
   currDirection: {x: 0, y: 0, z: 0}
   layerMask:
     serializedVersion: 2
     m_Bits: 0
+  animator: {fileID: 744029376}
+--- !u!95 &744029376
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 744029368}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 3cb678434a86c4149a0640507785162e, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 2
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &831125646
 GameObject:
   m_ObjectHideFlags: 0
@@ -3621,6 +3646,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 413179200789821984, guid: c07f723d208e947438386baced3979a7, type: 3}
+      propertyPath: m_SortingOrder
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2224299397871080681, guid: c07f723d208e947438386baced3979a7, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2224299397871080681, guid: c07f723d208e947438386baced3979a7, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.5
+      objectReference: {fileID: 0}
     - target: {fileID: 4832578559212040363, guid: c07f723d208e947438386baced3979a7, type: 3}
       propertyPath: m_Name
       value: Pickup
@@ -3629,6 +3666,18 @@ PrefabInstance:
       propertyPath: pickupItem
       value: 
       objectReference: {fileID: 11400000, guid: 53ee337bf5442a6409ddf30364aada0e, type: 2}
+    - target: {fileID: 7165431002249322127, guid: c07f723d208e947438386baced3979a7, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7165431002249322127, guid: c07f723d208e947438386baced3979a7, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7165431002249322127, guid: c07f723d208e947438386baced3979a7, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 7165431002249322127, guid: c07f723d208e947438386baced3979a7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 11.74

@@ -3,10 +3,10 @@ using UnityEngine;
 
 public class PlayerFade : MonoBehaviour
 {
+    public SpriteRenderer spriteRenderer;
     public IEnumerator Fade(float alpha, float duration)
     {
         float currentTime = 0f;
-        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         Color originalColor = spriteRenderer.color;
         Color targetColor = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
 
