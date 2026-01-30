@@ -3,6 +3,7 @@ using UnityEngine;
 // also contains code on interacting with interactables
 public class TopDownMovement : MonoBehaviour
 {
+    public SpriteRenderer spriteRenderer;
     public float moveSpeed;
     public bool isMoving;
     private Vector2 input;
@@ -13,6 +14,7 @@ public class TopDownMovement : MonoBehaviour
     private bool canMove = true;
 
     public LayerMask layerMask;
+    [SerializeField] private Animator animator;
 
     // Start is called before the first frame update
     void Start()
@@ -35,7 +37,22 @@ public class TopDownMovement : MonoBehaviour
             if (dir.magnitude > 0)
             {
                 currDirection = dir;
+                animator.SetBool("IsMoving", true);
+                
+                if (x > 0)
+                {
+                    spriteRenderer.flipX = false;
+                }
+                else if (x < 0)
+                {
+                    spriteRenderer.flipX = true;
+                }
             }
+            else
+            {
+                animator.SetBool("IsMoving", false);
+            }
+            animator.SetInteger("Vertical", (int) Mathf.Ceil(y));
         }
 
         if (Input.GetKeyDown(KeyCode.Space))

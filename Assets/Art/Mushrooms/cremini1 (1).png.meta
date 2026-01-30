@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: 23f9bcf4bc470eb469df6f34d8e5cb60
+guid: 60a17dd5511b6e94986ca31e8917933f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -9100876504776019106
-    second: cremini mushroom_0
+      213: 8843429645837959567
+    second: cremini1 (1)_0
+  - first:
+      213: 5255337348835491196
+    second: cremini1 (1)_1
+  - first:
+      213: 713999342198836241
+    second: cremini1 (1)_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +106,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: cremini mushroom_0
+      name: cremini1 (1)_0
       rect:
         serializedVersion: 2
-        x: 24
-        y: 13
-        width: 547
-        height: 555
+        x: 0
+        y: 0
+        width: 402
+        height: 354
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +121,52 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e537024990133b180800000000000000
-      internalID: -9100876504776019106
+      spriteID: f81845c886c2aba70800000000000000
+      internalID: 8843429645837959567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cremini1 (1)_1
+      rect:
+        serializedVersion: 2
+        x: 402
+        y: 0
+        width: 402
+        height: 354
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7dbe2c8975bee840800000000000000
+      internalID: 5255337348835491196
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cremini1 (1)_2
+      rect:
+        serializedVersion: 2
+        x: 804
+        y: 0
+        width: 402
+        height: 354
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11ccf996e92a8e900800000000000000
+      internalID: 713999342198836241
       vertices: []
       indices: 
       edges: []
@@ -125,7 +175,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 0798431c0df8470489b648d458c5a8e7
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +185,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      cremini mushroom_0: -9100876504776019106
+      cremini1 (1)_0: 8843429645837959567
+      cremini1 (1)_1: 5255337348835491196
+      cremini1 (1)_2: 713999342198836241
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class SidePlayerMovement : MonoBehaviour
 {
     public Rigidbody2D playerRb;
     public float speed; //please_speed_i_need_this.png
@@ -16,6 +16,7 @@ public class PlayerMovement : MonoBehaviour
     public float jumpTime = 0.35f;
     public float jumpTimeCounter;
     private bool isJumping;
+    [SerializeField] private Animator animator;
 
     void Update()
     {
@@ -23,10 +24,16 @@ public class PlayerMovement : MonoBehaviour
         if (input > 0)
         {
             spriteRenderer.flipX = false;
+            animator.SetBool("IsMoving", true);
         }
         else if (input < 0)
         {
             spriteRenderer.flipX = true;
+            animator.SetBool("IsMoving", true);
+        }
+        else
+        {
+            animator.SetBool("IsMoving", false);
         }
 
         isGrounded = Physics2D.OverlapCircle(feetPosition.position, groundCheckCircle, groundLayer);
