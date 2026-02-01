@@ -11,7 +11,7 @@ public class InventoryItem : MonoBehaviour
     public LayerMask targetLayer;
     public MeshRenderer meshRenderer;
     public Image image;
-    public FoodItem foodItem;
+    public FoodItemObject foodItem;
     
     void Start()
     {
@@ -47,15 +47,16 @@ public class InventoryItem : MonoBehaviour
         if (hit.collider != null)
         {
             hit.transform.GetComponent<DragFoodInto>().AddItem(this);
+            InventoryManager.foodItems.Remove(foodItem);
         }else{
             if (AlexKitchenInventoryUI.Instance != null) LayoutRebuilder.ForceRebuildLayoutImmediate(AlexKitchenInventoryUI.Instance.GetComponent<RectTransform>());
         }
     }
 
-    public void SetItem(FoodItem item){
+    public void SetItem(FoodItemObject item){
         foodItem = item;
-        meshRenderer.material.mainTexture = item.defaultSprite.texture;
-        image.sprite = item.defaultSprite;
+        meshRenderer.material.mainTexture = item.foodItem.defaultSprite.texture;
+        image.sprite = item.foodItem.defaultSprite;
     }
 
     void Update()

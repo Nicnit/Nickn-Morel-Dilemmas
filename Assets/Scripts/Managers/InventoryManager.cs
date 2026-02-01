@@ -1,22 +1,44 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+[System.Serializable]
+public class SliceOperation
+{
+    public Vector3 centerPoint;
+    public Vector3 planeNormal;
+    public SliceOperation upperHullSlice;
+    public SliceOperation lowerHullSlice;
+}
+
+public class FoodItemObject
+{
+    public FoodItem foodItem;
+    public float starQuality;
+    public tags tags;
+    public SliceOperation sliceOperation;
+}
 public class InventoryManager : MonoBehaviour
 {
     public Dictionary<Item, int> items = new Dictionary<Item, int>();
-    public Dictionary<FoodItem, int> foodItems = new Dictionary<FoodItem, int>();
+    public static List<FoodItemObject> foodItems = new List<FoodItemObject>();
 
-    public void AddFoodItem(FoodItem item, int quantity = 1)
+
+    public void AddFoodItem(FoodItem item, float quality = 5)
     {
-        if (foodItems.ContainsKey(item))
-        {
-            foodItems[item] += quantity;
-        }
-        else
-        {
-            foodItems.Add(item, quantity);
-        }
+        FoodItemObject foodobject = new FoodItemObject();
+        foodobject.foodItem = item;
+        foodobject.starQuality = quality;
+
+        foodItems.Add(foodobject);
+        AlexKitchenInventoryUI.Instance.UpdateItems();
     }
+
+    public void AddFoodObject(FoodItemObject item)
+    {
+        foodItems.Add(item);
+        AlexKitchenInventoryUI.Instance.UpdateItems();
+    }
+
 
     public void AddItem(Item item) // remove later
     {
@@ -47,7 +69,7 @@ public class InventoryManager : MonoBehaviour
         return items;
     }
 
-    public Dictionary<FoodItem, int> GetFoodItems()
+    public List<FoodItemObject> GetFoodItems()
     {
         return foodItems;
     }

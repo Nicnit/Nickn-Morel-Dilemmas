@@ -49,7 +49,6 @@ public class AlexCustomerSpawner : MonoBehaviour
         List<int> openTables = GameManager.Instance.customerManager.GetFreeTables();
         if (openTables.Count == 0)
         {
-            Debug.Log("Tables full");
             return;
         }
         int tableIndex = UnityEngine.Random.Range(0, openTables.Count);

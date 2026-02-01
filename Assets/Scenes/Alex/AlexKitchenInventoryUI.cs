@@ -42,8 +42,8 @@ public class AlexKitchenInventoryUI : MonoBehaviour
             Destroy(child.gameObject);
         }
         Debug.Log("Loading Items");
-        Dictionary<FoodItem, int> items = GameManager.Instance.inventoryManager.GetFoodItems();
-        foreach (FoodItem item in items.Keys)
+        List<FoodItemObject> items = GameManager.Instance.inventoryManager.GetFoodItems();
+        foreach (FoodItemObject item in items)
         {
             GameObject gamefoodItemUIIns = Instantiate(foodItemUI, this.gameObject.transform);
             gamefoodItemUIIns.GetComponent<InventoryItem>().SetItem(item);
@@ -52,7 +52,7 @@ public class AlexKitchenInventoryUI : MonoBehaviour
 
     public void Grow()
     {
-        transform.DOScale(originalSize * 3f, 0.2f);
+        transform.DOScale(originalSize * 2f, 0.2f);
     }
 
     public void Shrink()

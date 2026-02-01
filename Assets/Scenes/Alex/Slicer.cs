@@ -21,6 +21,8 @@ public class EzyMeshSlicer : MonoBehaviour
     private bool allowCut;
     private List<Vector3> outlinePoints = new List<Vector3>();
     private float outlineDistance;
+    private SliceOperation rootSliceOperation; // Root of the slice tree
+    private Dictionary<GameObject, (SliceOperation operation, bool isUpper)> meshToSliceOperation = new Dictionary<GameObject, (SliceOperation, bool)>(); // Track which mesh belongs to which slice and if it's upper/lower
 
     void Start()
     {
@@ -82,15 +84,46 @@ public class EzyMeshSlicer : MonoBehaviour
                     new List<Transform>(GetComponentsInChildren<MeshFilter>().Select(mf => mf.transform)),
                     outlinePoints
                 );
-                foreach(var mesh in selectedMeshes){
-                    mesh.transform.DOMove(mesh.transform.position + (mesh.transform.position-mesh.transform.parent.position)*3, .25f).OnComplete(()=>
+                
+                // Get inventory item once before animations
+                InventoryItem parentInventoryItem = null;
+                if(selectedMeshes.Count > 0)
+                {
+                    parentInventoryItem = selectedMeshes[0].transform.parent.GetComponent<InventoryItem>();
+                }
+                
+                foreach(Transform mesh in selectedMeshes){
+                    mesh.DOMove(mesh.position + (mesh.position-mesh.parent.position)*3, .25f).OnComplete(()=>
                     {
-                        mesh.transform.DOMove(transform.position -transform.up, 0.5f).OnComplete(()=>
+                        mesh.DOMove(transform.position -transform.up, 0.5f).OnComplete(()=>
                         {
-                            mesh.gameObject.SetActive(false);
+                            if (parentInventoryItem != null && parentInventoryItem.foodItem != null && selectedMeshes.IndexOf(mesh) == 0)
+                            {
+                                FoodItemObject modifiedFoodItem = new FoodItemObject();
+                                modifiedFoodItem.foodItem = parentInventoryItem.foodItem.foodItem;
+                                modifiedFoodItem.starQuality = parentInventoryItem.foodItem.starQuality;
+                                modifiedFoodItem.sliceOperation = rootSliceOperation;
+                                modifiedFoodItem.tags = tags.chopped;
+                                
+                                GameManager.Instance.inventoryManager.AddFoodObject(modifiedFoodItem);
+                                
+                            }
+                            Destroy(parentInventoryItem.gameObject);
                         });
                     });
                 }
+                if(selectedMeshes.Count > 0) foreach(Transform child in selectedMeshes[0].transform.parent){
+                    if(!child.gameObject.activeSelf || selectedMeshes.Contains(child)) continue;
+                    child.DOMove(child.position + (child.position-child.parent.position)*3, .25f).OnComplete(()=>
+                    {
+                        child.DOMove(transform.position + transform.up, 0.5f).OnComplete(()=>
+                        {
+                            Destroy(child.gameObject);
+                        });
+                    });
+                }
+                
+
                 outlinePoints.Clear();
                 outlineLineRenderer.positionCount = 0;
             }
@@ -158,6 +191,26 @@ public class EzyMeshSlicer : MonoBehaviour
 
         Transform[] childrenArray = children.ToArray();
         
+        // Record slice operation in local space
+        Vector3 centerPoint = (p1World + p2World) * 0.5f;
+        Vector3 swipeDir = (p2World - p1World).normalized;
+        Vector3 planeNormalOp = Vector3.Cross(swipeDir, Camera.main.transform.forward).normalized;
+        
+        // Convert to local space relative to this slicer's transform
+        Vector3 localCenterPoint = transform.parent != null ? transform.parent.InverseTransformPoint(centerPoint) : centerPoint;
+        
+        SliceOperation currentSlice = new SliceOperation
+        {
+            centerPoint = localCenterPoint,
+            planeNormal = planeNormalOp
+        };
+        
+        // If this is the first slice, make it root; otherwise it will be added to the tree by the parent
+        if (rootSliceOperation == null)
+        {
+            rootSliceOperation = currentSlice;
+        }
+        
         //go throgh every child and slice
         foreach (Transform child in childrenArray)
         {
@@ -166,8 +219,8 @@ public class EzyMeshSlicer : MonoBehaviour
             if (!meshFilter || !meshRenderer) continue;
 
             //get direction and normal to make the slicing plane
-            Vector3 swipeDir = (p2World - p1World).normalized;
-            Vector3 planeNormal = Vector3.Cross(swipeDir, Camera.main.transform.forward).normalized;
+            Vector3 swipeDir2 = (p2World - p1World).normalized;
+            Vector3 planeNormal = Vector3.Cross(swipeDir2, Camera.main.transform.forward).normalized;
 
             Vector3 planePoint = p1World;
 
@@ -185,6 +238,25 @@ public class EzyMeshSlicer : MonoBehaviour
 
             upper.transform.SetParent(child.transform.parent, false);
             lower.transform.SetParent(child.transform.parent, false);
+
+            // Track which slice operation this mesh belongs to and whether it's upper or lower
+            meshToSliceOperation[upper] = (currentSlice, true);
+            meshToSliceOperation[lower] = (currentSlice, false);
+            
+            // If this mesh came from a previous slice, add current slice to the appropriate branch
+            if (meshToSliceOperation.ContainsKey(child.gameObject))
+            {
+                var (parentSlice, wasUpper) = meshToSliceOperation[child.gameObject];
+                if (wasUpper)
+                {
+                    parentSlice.upperHullSlice = currentSlice;
+                }
+                else
+                {
+                    parentSlice.lowerHullSlice = currentSlice;
+                }
+                meshToSliceOperation.Remove(child.gameObject);
+            }
 
             //do the moving animation
             StartCoroutine(MoveSlice(upper.transform, planeNormal, sliceMoveTime, sliceMoveDistance));
