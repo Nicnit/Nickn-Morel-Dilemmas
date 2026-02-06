@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7661095821121321907}
   - component: {fileID: 7221375764830611776}
   - component: {fileID: 220977731420358177}
+  - component: {fileID: 2107951092604240379}
   m_Layer: 5
   m_Name: Quad
   m_TagString: Untagged
@@ -28,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
-  m_LocalScale: {x: 40, y: 40, z: 40}
+  m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1541117235067598865}
@@ -86,6 +87,33 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!50 &2107951092604240379
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 862989178778865606}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 20
+  m_AngularDamping: 20
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 1
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &4109604413297572975
 GameObject:
   m_ObjectHideFlags: 0
@@ -304,4 +332,3 @@ MonoBehaviour:
     m_Bits: 512
   meshRenderer: {fileID: 220977731420358177}
   image: {fileID: 6763840595460258229}
-  foodItem: {fileID: 0}

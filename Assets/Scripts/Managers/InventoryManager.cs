@@ -8,6 +8,8 @@ public class SliceOperation
     public Vector3 planeNormal;
     public SliceOperation upperHullSlice;
     public SliceOperation lowerHullSlice;
+    public bool upperDestroyed = false;
+    public bool lowerDestroyed = false;
 }
 
 public class FoodItemObject
