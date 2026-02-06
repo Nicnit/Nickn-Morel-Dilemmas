@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class CustomerSpawner : MonoBehaviour
 {
-    public List<GameObject> possibleCustomers = new List<GameObject>();
+    // public List<GameObject> possibleCustomers = new List<GameObject>();
     public GameObject[] tables = new GameObject[5]; // also hardcoded as 5 atm 
     public GameObject[] spawnedCustomers = new GameObject[5]; //hardcoded as 5 atm
     public float timeInBetween;  // in second
@@ -33,6 +33,7 @@ public class CustomerSpawner : MonoBehaviour
             return;
         }
         int tableIndex = Random.Range(0, openTables.Count);
+        List<GameObject> possibleCustomers = GameManager.Instance.customerManager.GetPossibleCustomers();
         int customerIndex = Random.Range(0, possibleCustomers.Count);
 
         SpawnCustomer(possibleCustomers[customerIndex].GetComponent<Customer>().GetCustomerType(), openTables[tableIndex], false);

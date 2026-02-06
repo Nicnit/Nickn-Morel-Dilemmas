@@ -14,6 +14,7 @@ public class TopDownMovement : MonoBehaviour
     private bool canMove = true;
 
     public LayerMask layerMask;
+    public SpriteRenderer dish;
     [SerializeField] private Animator animator;
 
     // Start is called before the first frame update
@@ -23,6 +24,7 @@ public class TopDownMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         dir = new Vector3(1, 0, 0);
+        GameManager.Instance.orderManager.OnHeldOrderChanged += UpdateDish;
     }
 
     // Update is called once per frame
@@ -62,6 +64,18 @@ public class TopDownMovement : MonoBehaviour
             {
                 Interacting(raycastResult);
             }
+        }
+    }
+
+    private void UpdateDish()
+    {
+        if (GameManager.Instance.orderManager.GetHeldOrderIndex() >= 0)
+        {
+            dish.sprite = GameManager.Instance.orderManager.GetHeldOrder().defaultSprite;
+        }
+        else
+        {
+            dish.sprite = null;
         }
     }
 

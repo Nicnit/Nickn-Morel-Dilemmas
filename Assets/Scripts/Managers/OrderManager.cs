@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -5,7 +6,9 @@ public class OrderManager : MonoBehaviour
 {
     public List<FoodItem> dailyDishes;
     public FoodItem[] currentOrders = new FoodItem[5]; // hardcoded at 5 rn - can be changed if needed
-    public int heldOrderIndex;
+
+    public event Action OnHeldOrderChanged;
+    private int heldOrderIndex;
 
     public void Start()
     {
@@ -25,11 +28,14 @@ public class OrderManager : MonoBehaviour
     public void SetHeldOrder(int heldOrderIndex)
     {
         this.heldOrderIndex = heldOrderIndex;
+        OnHeldOrderChanged?.Invoke();
+
     }
 
-    public void RemoveHeldOrlder()
+    public void RemoveHeldOrder()
     {
         heldOrderIndex = -1;
+        OnHeldOrderChanged?.Invoke();
     }
 
     public FoodItem GetRecipe(int tableNum)
@@ -37,15 +43,15 @@ public class OrderManager : MonoBehaviour
         return currentOrders[tableNum];
     }
 
-    // public int GetHeldOrderIndex()
-    // {
-    //     return heldOrderIndex;
-    // }
+    public int GetHeldOrderIndex()
+    {
+        return heldOrderIndex;
+    }
 
-    // public FoodItem GetHeldOrder()
-    // {
-    //     return currentOrders[heldOrderIndex];
-    // }
+    public FoodItem GetHeldOrder()
+    {
+        return currentOrders[heldOrderIndex];
+    }
 
     public bool OrderDelivery(int tableNum)
     {
@@ -55,8 +61,13 @@ public class OrderManager : MonoBehaviour
         }
         if (currentOrders[tableNum].itemName == currentOrders[heldOrderIndex].itemName)   // so that if they order similar dishes can be interchangeable
         {
-            heldOrderIndex = -1;
+            //TODO: reputation and money calculation
+            RemoveHeldOrder();
             currentOrders[tableNum] = null;
+            GameManager.Instance.customerManager.RemoveCustomer(tableNum);
+
+            // TODO: Implement forumla
+            GameManager.Instance.starManager.IncreaseStarValue(0.5f);
             return true;
         }
         else
@@ -67,6 +78,6 @@ public class OrderManager : MonoBehaviour
 
     public FoodItem SelectRandomDish()
     {
-        return dailyDishes[Random.Range(0, dailyDishes.Count)];
+        return dailyDishes[UnityEngine.Random.Range(0, dailyDishes.Count)];
     }
 }

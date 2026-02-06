@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Customer : MonoBehaviour, IInteractable
 {
-    public int tableNum;
+    private int tableNum;
 
     //TODO: change recipe based on day, remove serialized field
     private FoodItem orderedDish;
@@ -20,8 +20,6 @@ public class Customer : MonoBehaviour, IInteractable
         {
             if (GameManager.Instance.orderManager.OrderDelivery(tableNum))
             {
-                //TODO: check held dish matching here - reputation and money calculation
-                GameManager.Instance.customerManager.RemoveCustomer(tableNum);
                 Destroy(this.gameObject);
             }
             else

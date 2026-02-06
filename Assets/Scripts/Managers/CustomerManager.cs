@@ -102,4 +102,9 @@ public class CustomerManager : MonoBehaviour
         }
         return rtn;
     }
+
+    public List<GameObject> GetPossibleCustomers()
+    {
+        return possibleCustomers;
+    }
 }

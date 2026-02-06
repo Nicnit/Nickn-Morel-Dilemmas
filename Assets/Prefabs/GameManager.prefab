@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 578260495059733337}
   - component: {fileID: 8555777464289860506}
   - component: {fileID: 8864420851491180810}
+  - component: {fileID: 2372981988764308445}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -50,6 +51,7 @@ MonoBehaviour:
   orderManager: {fileID: 578260495059733337}
   inventoryManager: {fileID: 8555777464289860506}
   customerManager: {fileID: 8864420851491180810}
+  starManager: {fileID: 2372981988764308445}
 --- !u!114 &578260495059733337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,13 +64,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d510c5b1531143458b05de253686ab9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dailyDishes:
+  - {fileID: 11400000, guid: 087e46bf3e044e14ebd8422c3dcbe65a, type: 2}
+  - {fileID: 11400000, guid: fa92cf8fd9b467f4bb462559f5e7cadc, type: 2}
+  - {fileID: 11400000, guid: feeebf8124a0bc64eb454032da203dd5, type: 2}
   currentOrders:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  heldOrder: {fileID: 0}
 --- !u!114 &8555777464289860506
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -95,3 +100,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   possibleCustomers:
   - {fileID: 3437730016611834111, guid: 463ca7d2dd2d5904184196af9f70bff3, type: 3}
+  - {fileID: 7816804799055457130, guid: 8a2aa3f97b318d4429c29edcf729e471, type: 3}
+--- !u!114 &2372981988764308445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 64593716309421285}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1be143a7ea5de4d4da729ca2987d5c1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  starValue: 1

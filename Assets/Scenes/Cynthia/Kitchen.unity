@@ -1078,7 +1078,7 @@ GameObject:
   - component: {fileID: 1722798984}
   - component: {fileID: 1722798983}
   m_Layer: 0
-  m_Name: script
+  m_Name: Temp cooking placeholder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

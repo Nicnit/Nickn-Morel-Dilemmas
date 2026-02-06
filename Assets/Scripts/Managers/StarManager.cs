@@ -1,17 +1,22 @@
+using System;
 using UnityEngine;
 
 public class StarManager : MonoBehaviour
 {
     public float starValue;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public event Action OnStarValueChanged;
+
+    public float GetStarValue()
     {
-        starValue = 1;
+        return starValue;
     }
 
     public void IncreaseStarValue(float value)
     {
         starValue += value;
+        Debug.Log("stored star value: " + starValue);
+        OnStarValueChanged?.Invoke();
     }
 
     public void DecreaseStarValue(float value)
@@ -21,5 +26,6 @@ public class StarManager : MonoBehaviour
         {
             starValue = 0;
         }
+        OnStarValueChanged?.Invoke();
     }
 }
