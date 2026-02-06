@@ -57,6 +57,7 @@ public class InventoryItem : MonoBehaviour
         foodItem = item;
         meshRenderer.material.mainTexture = item.foodItem.defaultSprite.texture;
         image.sprite = item.foodItem.defaultSprite;
+        meshRenderer.GetComponent<MeshFilter>().mesh = BuildMeshFromSprite(item.foodItem.defaultSprite);
     }
 
     void Update()
@@ -69,4 +70,33 @@ public class InventoryItem : MonoBehaviour
             transform.position = worldPosition;
         }
     }
+
+    Mesh BuildMeshFromSprite(Sprite sprite)
+    {
+        Mesh mesh = new Mesh();
+
+        Vector3[] vertices = new Vector3[sprite.vertices.Length];
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            vertices[i] = sprite.vertices[i];
+        }
+
+        int[] triangles = new int[sprite.triangles.Length];
+        for (int i = 0; i < triangles.Length; i++)
+        {
+            triangles[i] = sprite.triangles[i];
+        }
+
+        Vector2[] uvs = sprite.uv;
+
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.uv = uvs;
+
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+
+        return mesh;
+    }
+
 }

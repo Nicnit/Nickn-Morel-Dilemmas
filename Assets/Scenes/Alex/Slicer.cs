@@ -2,13 +2,11 @@ using UnityEngine;
 using EzySlice;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using System.Linq;
 using DG.Tweening;
 public class EzyMeshSlicer : MonoBehaviour
 {
     Vector3 p1World, p2World;
-    public GameObject sliceParticle;
     public float sliceTime = 1;
     public AnimationCurve sliceCurve;
     public float sliceMoveDistance = 1;
@@ -22,7 +20,6 @@ public class EzyMeshSlicer : MonoBehaviour
     private List<Vector3> outlinePoints = new List<Vector3>();
     private float outlineDistance;
     private SliceOperation rootSliceOperation; // Root of the slice tree
-    private Dictionary<GameObject, (SliceOperation operation, bool isUpper)> meshToSliceOperation = new Dictionary<GameObject, (SliceOperation, bool)>(); // Track which mesh belongs to which slice and if it's upper/lower
 
     void Start()
     {
@@ -30,20 +27,31 @@ public class EzyMeshSlicer : MonoBehaviour
         GetComponent<Collider2D>().enabled = true;
     }
 
+    public void InitializeFromItem(InventoryItem item) // when moving an already sliced item onto the board
+    {
+        if (item == null || item.foodItem == null || item.foodItem.sliceOperation == null)
+        {
+            rootSliceOperation = null;
+            return;
+        }
+
+        rootSliceOperation = item.foodItem.sliceOperation;
+    }
+
+    Vector3 MouseWorldPos => Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5));
+
     public void OnMouseDown()
     {
-
-        if(sliceTimer > 0) return;
+        if (sliceTimer > 0) return;
         sliceLineRenderer.enabled = true;
-        p1World = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5));
+        p1World = MouseWorldPos;
         sliceLineRenderer.SetPosition(0, p1World);
     }
 
     public void OnMouseUp()
     {
-
-        if(sliceTimer > 0) return;
-        p2World = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5));
+        if (sliceTimer > 0) return;
+        p2World = MouseWorldPos;
         sliceLineRenderer.SetPosition(1, p2World);
         sliceTimer = 1;
     }
@@ -51,10 +59,11 @@ public class EzyMeshSlicer : MonoBehaviour
 
     void Update()
     {
+        //Mouse outline logic
         
         if (Input.GetMouseButton(1))
         {
-            Vector3 currentPoint = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5));
+            Vector3 currentPoint = MouseWorldPos;
             
             if (outlinePoints.Count == 0)
             {
@@ -63,7 +72,7 @@ public class EzyMeshSlicer : MonoBehaviour
             else
             {
                 outlineDistance += Vector2.Distance(currentPoint, outlinePoints[outlinePoints.Count - 1]);
-                if (outlineDistance >= 0.1f)
+                if (outlineDistance >= 0.025f)
                 {
                     outlinePoints.Add(currentPoint);
                     outlineDistance = 0f;
@@ -91,8 +100,35 @@ public class EzyMeshSlicer : MonoBehaviour
                 {
                     parentInventoryItem = selectedMeshes[0].transform.parent.GetComponent<InventoryItem>();
                 }
+
+                //animate each unselected mesh to go away from the player and be destroyed
+                if(selectedMeshes.Count > 0) foreach(Transform child in selectedMeshes[0].transform.parent)
+                {
+                    if(!child.gameObject.activeSelf || selectedMeshes.Contains(child)) continue;
+                    if(child.GetComponent<Collider2D>()) child.GetComponent<Collider2D>().enabled = false;
+                    
+                    // mark branch as destroyed in the slice tree
+                    SliceInfo info = child.GetComponent<SliceInfo>();
+                    if (info?.sliceOperation != null)
+                    {
+                        if (info.isUpperHull) info.sliceOperation.upperDestroyed = true;
+                        else info.sliceOperation.lowerDestroyed = true;
+                    }
+
+                    child.DOMove(child.position + (child.position-child.parent.position)*3, .25f).OnComplete(()=>
+                    {
+                        child.DOMove(transform.position + transform.up, 0.5f).OnComplete(()=>
+                        {
+                            Destroy(child.gameObject);
+                        });
+                    });
+                }
                 
-                foreach(Transform mesh in selectedMeshes){
+                //animate each selected mesh to go toward the player and add to inventory
+                foreach(Transform mesh in selectedMeshes)
+                {
+                    if(mesh.GetComponent<Collider2D>()) mesh.GetComponent<Collider2D>().enabled = false;
+
                     mesh.DOMove(mesh.position + (mesh.position-mesh.parent.position)*3, .25f).OnComplete(()=>
                     {
                         mesh.DOMove(transform.position -transform.up, 0.5f).OnComplete(()=>
@@ -112,29 +148,25 @@ public class EzyMeshSlicer : MonoBehaviour
                         });
                     });
                 }
-                if(selectedMeshes.Count > 0) foreach(Transform child in selectedMeshes[0].transform.parent){
-                    if(!child.gameObject.activeSelf || selectedMeshes.Contains(child)) continue;
-                    child.DOMove(child.position + (child.position-child.parent.position)*3, .25f).OnComplete(()=>
-                    {
-                        child.DOMove(transform.position + transform.up, 0.5f).OnComplete(()=>
-                        {
-                            Destroy(child.gameObject);
-                        });
-                    });
-                }
                 
 
                 outlinePoints.Clear();
                 outlineLineRenderer.positionCount = 0;
             }
         }
+        
+
+
+
+
+        /// Slicing logic
 
         if (sliceTimer > 0f)
         {
             allowCut = true;
 
             sliceTimer -= Time.deltaTime / sliceTime;
-            sliceTimer = Mathf.Max(sliceTimer, 0f); // IMPORTANT
+            sliceTimer = Mathf.Max(sliceTimer, 0f);
 
             effectLineRenderer.enabled = true;
             effectLineRenderer.widthMultiplier = 1f;
@@ -157,12 +189,15 @@ public class EzyMeshSlicer : MonoBehaviour
         }
         else
         {
-            sliceLineRenderer.SetPosition(1, Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5)));
+            sliceLineRenderer.SetPosition(1, MouseWorldPos);
             if (allowCut)
             {
                 allowCut = false;
                 SliceAllChildren();
-                StartCoroutine(ShrinkSliceEffect(0.5f));
+                DOTween.To(() => effectLineRenderer.widthMultiplier, x => effectLineRenderer.widthMultiplier = x, 0, 0.5f).OnComplete(() =>
+                {
+                    effectLineRenderer.enabled = false;
+                });
 
                 sliceLineRenderer.enabled = false;
             }
@@ -170,100 +205,59 @@ public class EzyMeshSlicer : MonoBehaviour
     }
 
 
-    IEnumerator ShrinkSliceEffect(float duration)
-    {
-        for(float t=0; t<duration; t+=Time.fixedDeltaTime)
-        {
-            effectLineRenderer.widthMultiplier = Mathf.Lerp(1, 0, t/duration);
-            yield return new WaitForFixedUpdate();
-        }
-        effectLineRenderer.enabled = false;
-    }
-
     void SliceAllChildren()
     {
-        List<Transform> children = new List<Transform>();
-        foreach (MeshFilter child in transform.GetComponentsInChildren<MeshFilter>()) 
-        {
-            if(child.gameObject.activeInHierarchy == false) continue;
-            if(CutHitsMesh(child.transform, p1World, p2World)) children.Add(child.transform);
-        }
+        //detect all meshes the line intersects
+        var meshesToSlice = GetComponentsInChildren<MeshFilter>().Where(mf => mf.gameObject.activeInHierarchy && CutHitsMesh(mf.transform, p1World, p2World)).ToArray();
 
-        Transform[] childrenArray = children.ToArray();
-        
-        // Record slice operation in local space
-        Vector3 centerPoint = (p1World + p2World) * 0.5f;
-        Vector3 swipeDir = (p2World - p1World).normalized;
-        Vector3 planeNormalOp = Vector3.Cross(swipeDir, Camera.main.transform.forward).normalized;
-        
-        // Convert to local space relative to this slicer's transform
-        Vector3 localCenterPoint = transform.parent != null ? transform.parent.InverseTransformPoint(centerPoint) : centerPoint;
-        
-        SliceOperation currentSlice = new SliceOperation
+        Vector3 planeNormal = Vector3.Cross((p2World - p1World).normalized, Camera.main.transform.forward).normalized;
+
+        foreach (var meshFilter in meshesToSlice)
         {
-            centerPoint = localCenterPoint,
-            planeNormal = planeNormalOp
-        };
-        
-        // If this is the first slice, make it root; otherwise it will be added to the tree by the parent
-        if (rootSliceOperation == null)
-        {
-            rootSliceOperation = currentSlice;
-        }
-        
-        //go throgh every child and slice
-        foreach (Transform child in childrenArray)
-        {
-            MeshFilter meshFilter = child.GetComponent<MeshFilter>();
+            Transform child = meshFilter.transform;
             MeshRenderer meshRenderer = child.GetComponent<MeshRenderer>();
-            if (!meshFilter || !meshRenderer) continue;
+            if (!meshRenderer) continue;
 
-            //get direction and normal to make the slicing plane
-            Vector3 swipeDir2 = (p2World - p1World).normalized;
-            Vector3 planeNormal = Vector3.Cross(swipeDir2, Camera.main.transform.forward).normalized;
-
-            Vector3 planePoint = p1World;
-
-            //create the hull, which is just the sliced mesh data from the plane, used from the ezyslice library
-            SlicedHull hull = child.gameObject.Slice(
-                planePoint,
-                planeNormal
-            );
-
+            SlicedHull hull = child.gameObject.Slice(p1World, planeNormal);
             if (hull == null) continue;
 
-            //make the two sliced mesh portions
-            GameObject upper = hull.CreateUpperHull(child.gameObject, meshRenderer.sharedMaterial);
-            GameObject lower = hull.CreateLowerHull(child.gameObject, meshRenderer.sharedMaterial);
-
-            upper.transform.SetParent(child.transform.parent, false);
-            lower.transform.SetParent(child.transform.parent, false);
-
-            // Track which slice operation this mesh belongs to and whether it's upper or lower
-            meshToSliceOperation[upper] = (currentSlice, true);
-            meshToSliceOperation[lower] = (currentSlice, false);
-            
-            // If this mesh came from a previous slice, add current slice to the appropriate branch
-            if (meshToSliceOperation.ContainsKey(child.gameObject))
+            // create a local slice operation
+            SliceOperation currentSlice = new SliceOperation
             {
-                var (parentSlice, wasUpper) = meshToSliceOperation[child.gameObject];
-                if (wasUpper)
-                {
-                    parentSlice.upperHullSlice = currentSlice;
-                }
-                else
-                {
-                    parentSlice.lowerHullSlice = currentSlice;
-                }
-                meshToSliceOperation.Remove(child.gameObject);
-            }
+                centerPoint = child.InverseTransformPoint((p1World + p2World) * 0.5f),
+                planeNormal = child.InverseTransformDirection(planeNormal)
+            };
 
-            //do the moving animation
+            // create upper and lower pieces
+            GameObject upper = SetupHull(hull.CreateUpperHull(child.gameObject, meshRenderer.sharedMaterial), child, currentSlice, true);
+            GameObject lower = SetupHull(hull.CreateLowerHull(child.gameObject, meshRenderer.sharedMaterial), child, currentSlice, false);
+
+            // add the pieces to the tree
+            SliceInfo childSliceInfo = child.GetComponent<SliceInfo>();
+            if (childSliceInfo?.sliceOperation != null)
+            {
+                if (childSliceInfo.isUpperHull) childSliceInfo.sliceOperation.upperHullSlice = currentSlice;
+
+                else childSliceInfo.sliceOperation.lowerHullSlice = currentSlice;
+            }
+            else if (rootSliceOperation == null) rootSliceOperation = currentSlice;
+
             StartCoroutine(MoveSlice(upper.transform, planeNormal, sliceMoveTime, sliceMoveDistance));
             StartCoroutine(MoveSlice(lower.transform, -planeNormal, sliceMoveTime, sliceMoveDistance));
-
             Destroy(child.gameObject);
         }
+    }
+
+    GameObject SetupHull(GameObject hull, Transform parent, SliceOperation sliceOp, bool isUpper)
+    {
+        hull.transform.SetParent(parent.parent, false);
+        DragFoodInto.AddPolygonCollider2DFromMesh(hull);
+        DragFoodInto.CloneRigidbody2D(hull, parent.gameObject);
+        
+        SliceInfo info = hull.AddComponent<SliceInfo>();
+        info.sliceOperation = sliceOp;
+        info.isUpperHull = isUpper;
+        return hull;
     }
 
     bool CutHitsMesh(Transform meshTf, Vector3 mousePoint1, Vector3 mousePoint2)
@@ -339,46 +333,33 @@ public class EzyMeshSlicer : MonoBehaviour
         }
     }
 
-    public List<Transform> GetTransformsInsideOutline(List<Transform> meshTransforms, List<Vector3> outlinePoints) // get all transforms in outline
+    List<Transform> GetTransformsInsideOutline(List<Transform> meshTransforms, List<Vector3> outlinePoints) // get all transforms inside the outline
     {
-        List<Transform> insideTransforms = new List<Transform>();
+        if (outlinePoints.Count < 3) return new List<Transform>();
         
-        if (outlinePoints.Count < 3) return insideTransforms; // atleast 3
+        // Convert outline points to screen space
+        List<Vector2> screenPolygon = outlinePoints.Select(p => (Vector2)Camera.main.WorldToScreenPoint(p)).ToList();
         
-        foreach (Transform t in meshTransforms)
-        {
-            Vector2 point2D = new Vector2(t.position.x, t.position.y);
-            if (IsPointInPolygon(point2D, outlinePoints))
-            {
-                insideTransforms.Add(t);
-            }
-        }
-        
-        return insideTransforms;
+        // Use mesh bounds center instead of transform position (pivot may be offset after slicing)
+        return meshTransforms.Where(t => {
+            var renderer = t.GetComponent<MeshRenderer>();
+            Vector3 center = renderer ? renderer.bounds.center : t.position;
+            return IsPointInPolygon(Camera.main.WorldToScreenPoint(center), screenPolygon);
+        }).ToList();
     }
 
-    private bool IsPointInPolygon(Vector2 point, List<Vector3> polygon) // if point in polygon return true
+    bool IsPointInPolygon(Vector2 point, List<Vector2> polygon) // detect if point is in the outline, which is a list of points
     {
         int intersections = 0;
-        int count = polygon.Count;
-        
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < polygon.Count; i++)
         {
-            Vector2 a = new Vector2(polygon[i].x, polygon[i].y);
-            Vector2 b = new Vector2(polygon[(i + 1) % count].x, polygon[(i + 1) % count].y);
-            
-            // check if ray intersects edge
+            Vector2 a = polygon[i], b = polygon[(i + 1) % polygon.Count];
             if ((a.y > point.y) != (b.y > point.y))
             {
                 float xIntersect = (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x;
-                if (point.x < xIntersect)
-                {
-                    intersections++;
-                }
+                if (point.x < xIntersect) intersections++;
             }
         }
-        
-        // odd = inside, even = outside
         return (intersections % 2) == 1;
     }
 }
