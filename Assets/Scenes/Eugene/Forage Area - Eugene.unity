@@ -2488,7 +2488,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   parallaxMultiplier: 0.5
   mushroomMan: {fileID: 1563943763}
-  renderDistance: 30
+  renderDistance: 25
 --- !u!1 &675057379
 GameObject:
   m_ObjectHideFlags: 0
@@ -2659,7 +2659,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   parallaxMultiplier: 0.5
   mushroomMan: {fileID: 1563943763}
-  renderDistance: 25
+  renderDistance: 30
 --- !u!1 &787830245
 GameObject:
   m_ObjectHideFlags: 0
